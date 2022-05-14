@@ -5,7 +5,7 @@
         "strictNullChecks":false,
         "paths": {
             "three/examples/jsm/libs/tween.module.min": ["../typings/tween.js"],
-            "three-device-orientation": ["../typings/deviceOrientationControls.js"]//,
+            "three-device-orientation": ["../typings/DeviceOrientationControls.js"]//,
             //"three/examples/jsm/controls/DeviceOrientationControls.js": ["../typings/deviceOrientationControls.js"]
         }
     },

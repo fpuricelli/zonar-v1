@@ -1,7 +1,7 @@
 //declare module 'three-device-orientation'
 import {
 	Camera
-} from '../../../src/typings/Camera';
+} from '../Camera';
 
 export class DeviceOrientationControls {
 
