@@ -144,7 +144,7 @@ socket.on('clients', (clients: any) => {
 
 
         timestamp = Date.now()
-        pingStatsHtml += p + ' ' + (timestamp - clients[p].t) + 'ms - vista:'+clients[p].v+' nroConn: ' + clients[p].c +' <br/>'
+        pingStatsHtml += p + ' ' + (timestamp - clients[p].t) + 'ms - modo:'+clients[p].v+' nroConn: ' + clients[p].c +' <br/>'
         if (!clientCubes[p] && clients[p].c == 1) {
             clientCubes[p] = new THREE.Mesh(geometry, material)
             clientCubes[p].name = p
