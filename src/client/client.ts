@@ -6,6 +6,7 @@ import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
 import { io } from 'socket.io-client'
 import { count } from 'console'
 import { AnaglyphEffect } from 'three/examples/jsm/effects/AnaglyphEffect'
+import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 
 
 
@@ -78,7 +79,9 @@ function onWindowResize() {
     render()
 }
 
-
+const view = {
+    tipo: 'Opera'
+}
 let viewType=0
 let myId = ''
 let timestamp = 0
@@ -110,7 +113,26 @@ socket.on('orden', (connNumber: any) => {
         console.log('main conex......')
         controlGui()
         viewType = 1
+        view.tipo='Opera'
     }
+    if (connNumber == 2) {
+        console.log('3D conex......')
+        viewType = 2
+        view.tipo='3D'
+    }
+    if (connNumber == 3) {
+        console.log('modo VR......')
+        viewType = 3
+        document.body.appendChild( VRButton.createButton( renderer ) );
+        renderer.xr.enabled = true;
+        view.tipo='XR';
+    }
+    // guarda el tipo de vista asociado a la conexión
+    setInterval(() => {
+        socket.emit('update', {
+            v: view.tipo,
+        })
+    }, 50)
 })
 
 socket.on('clients', (clients: any) => {
@@ -126,12 +148,11 @@ socket.on('clients', (clients: any) => {
         if (!clientCubes[p] && clients[p].c == 1) {
             clientCubes[p] = new THREE.Mesh(geometry, material)
             clientCubes[p].name = p
+            
 
             scene.add(clientCubes[p])
            
-            console.log('conex:'+clients[p].c)
-
-            
+            console.log('conex:'+clients[p].c)            
 
             
         } 
@@ -173,9 +194,7 @@ socket.on('removeClient', (id: string) => {
 
 
 
-const view = {
-    tipo: 'Opera'
-}
+
 
 function updateMaterial() {
     material.side = Number(material.side)
@@ -238,7 +257,7 @@ function controlGui() {
 
     const viewType = gui.addFolder('Vista')
     viewType.add(view,'tipo',
-                    ['Opera', '3D'])
+                    ['Opera', '3D', 'XR'])
             .onChange(()=>updateView())
 
     const data = {
@@ -258,11 +277,15 @@ function controlGui() {
 
 
 const animate = function () {
-    requestAnimationFrame(animate)
 
-    controls.update()
+    if (view.tipo=='XR') {
+        renderer.setAnimationLoop(render)
+    } else {
+        requestAnimationFrame(animate)
 
-    TWEEN.update()
+        controls.update()
+    }
+    
 
     if (clientCubes[myId]) {
         camera.lookAt(clientCubes[myId].position)
@@ -277,8 +300,8 @@ const animate = function () {
 }
 
 const render = function () {
-    console.log("tipo de vista : "+ viewType)
-    if (viewType == 1) {
+    TWEEN.update()
+    if (view.tipo == 'Opera' || view.tipo=='XR') {
      renderer.render(scene, camera)
     } else {
      effect.render(scene, camera)
