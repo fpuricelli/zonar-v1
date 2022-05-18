@@ -4,7 +4,7 @@ import http from 'http'
 import { Server, Socket } from 'socket.io'
 import { nextTick } from 'process'
 
-const port: number = process.env.PORT || 3000
+const port: number = 3000
 
 class App {
     private server: http.Server
