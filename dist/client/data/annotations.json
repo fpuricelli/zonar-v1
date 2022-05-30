@@ -1,0 +1,30 @@
+[
+    {
+      "title": "Lado A",
+      "description": "<p>Descripción Lado A</p>",
+      "camPos": {
+        "x": 6.61,
+        "y": 3.89,
+        "z": 1.37
+      },
+      "lookAt": {
+        "x": 0.2,
+        "y": 0,
+        "z": 0.36
+      }
+    },
+    {
+      "title": "Lado B",
+      "description": "Este es el lado B.",
+      "camPos": {
+        "x": 7.13,
+        "y": 1.15,
+        "z": -0.66
+      },
+      "lookAt": {
+        "x": 0.2,
+        "y": 0.89,
+        "z": -0.68
+      }
+    }
+  ]

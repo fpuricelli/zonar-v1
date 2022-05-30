@@ -7,17 +7,10 @@ import { io } from 'socket.io-client'
 import { count } from 'console'
 import { AnaglyphEffect } from 'three/examples/jsm/effects/AnaglyphEffect'
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
-import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
-
-// para annotations
-let annotations: { [key: string]: Annotation }
-const annotationMarkers: THREE.Sprite[] = []
-//
 
 
 
 const scene = new THREE.Scene()
-
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -26,23 +19,9 @@ const camera = new THREE.PerspectiveCamera(
     1000
 )
 
-
-
-const circleTexture = new THREE.TextureLoader().load('img/circle.png')
-//
-
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
-
-
-// para annotations
-const labelRenderer = new CSS2DRenderer()
-labelRenderer.setSize(window.innerWidth, window.innerHeight)
-labelRenderer.domElement.style.position = 'absolute'
-labelRenderer.domElement.style.top = '0px'
-labelRenderer.domElement.style.pointerEvents = 'none'
-document.body.appendChild(labelRenderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
 
@@ -67,21 +46,8 @@ envTexture.mapping = THREE.CubeReflectionMapping
 //material.envMap = envTexture
 
 const myObject3D = new THREE.Object3D()
-
-// Esto para posiciones Random
 myObject3D.position.x = Math.random() * 4 - 2
 myObject3D.position.z = Math.random() * 4 - 2
-
-
-//Ejes del objeto
-const object3DAxis = new THREE.AxesHelper(80);
-scene.add(object3DAxis);
-
-
-
-// Esto para posiciones fijas
-myObject3D.position.x = 0.5
-myObject3D.position.z = 1
 
 //const gridHelper = new THREE.GridHelper(10, 10)
 //gridHelper.position.y = -0.5
@@ -110,7 +76,6 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
-    labelRenderer.setSize(window.innerWidth, window.innerHeight)
     render()
 }
 
@@ -189,66 +154,7 @@ socket.on('clients', (clients: any) => {
            
             console.log('conex:'+clients[p].c)            
 
-            // annotations
-            const annotationsDownload = new XMLHttpRequest()
-            annotationsDownload.open('GET', '/data/annotations.json')
-            annotationsDownload.onreadystatechange = function () {
-                if (annotationsDownload.readyState === 4) {
-                    annotations = JSON.parse(annotationsDownload.responseText)
-                    console.log(annotations)
-                    const annotationsPanel = document.getElementById(
-                        'annotationsPanel'
-                    ) as HTMLDivElement
-                    
-                    const ul = document.createElement('UL') as HTMLUListElement
-                    const ulElem = annotationsPanel.appendChild(ul)
-                    Object.keys(annotations).forEach((a) => {
-                        const li = document.createElement('UL') as HTMLLIElement
-                        const liElem = ulElem.appendChild(li)
-                        const button = document.createElement('BUTTON') as HTMLButtonElement
-                        button.innerHTML = a + ' : ' + annotations[a].title
-                        button.className = 'annotationButton'
-                        button.addEventListener('click', function () {
-                            gotoAnnotation(annotations[a])
-                        })
-                        liElem.appendChild(button)
-
-                        const annotationSpriteMaterial = new THREE.SpriteMaterial({
-                            map: circleTexture,
-                            depthTest: false,
-                            depthWrite: false,
-                            sizeAttenuation: false,
-                        })
-
-                        const annotationSprite = new THREE.Sprite(annotationSpriteMaterial)
-                        annotationSprite.scale.set(0.066, 0.066, 0.066)
-                        annotationSprite.position.copy(annotations[a].lookAt)
-                        annotationSprite.userData.id = a
-                        scene.add(annotationSprite)
-                        annotationMarkers.push(annotationSprite)
-
-                        const annotationDiv = document.createElement('div')
-                        annotationDiv.className = 'annotationLabel'
-                        annotationDiv.innerHTML = a
-                        console.log(a)
-                        const annotationLabel = new CSS2DObject(annotationDiv)
-                        annotationLabel.position.copy(annotations[a].lookAt)
-                        console.log(annotationLabel)
-                        scene.add(annotationLabel)
-                        
-
-                        if (annotations[a].description) {
-                            const annotationDescriptionDiv = document.createElement('div')
-                            annotationDescriptionDiv.className = 'annotationDescription'
-                            annotationDescriptionDiv.innerHTML = annotations[a].description
-                            annotationDiv.appendChild(annotationDescriptionDiv)
-                            annotations[a].descriptionDomElement = annotationDescriptionDiv
-                        }
-
-                    })
-                }
-            }
-            annotationsDownload.send()
+            
         } 
         else {
             if (clients[p].p && clients[p].c == 1) {
@@ -287,41 +193,7 @@ socket.on('removeClient', (id: string) => {
 })
 
 
-function gotoAnnotation(a: any): void {
-    new TWEEN.Tween(camera.position)
-        .to(
-            {
-                x: a.camPos.x,
-                y: a.camPos.y,
-                z: a.camPos.z,
-            },
-            500
-        )
-        .easing(TWEEN.Easing.Cubic.Out)
-        .start()
 
-    new TWEEN.Tween(controls.target)
-        .to(
-            {
-                x: a.lookAt.x,
-                y: a.lookAt.y,
-                z: a.lookAt.z,
-            },
-            500
-        )
-        .easing(TWEEN.Easing.Cubic.Out)
-        .start()
-
-    Object.keys(annotations).forEach((annotation) => {
-        if (annotations[annotation].descriptionDomElement) {
-            ;(annotations[annotation].descriptionDomElement as HTMLElement).style.display = 'none'
-        }
-    })
-    if (a.descriptionDomElement) {
-        //console.log(a.descriptionDomElement.style.display)
-        a.descriptionDomElement.style.display = 'block'
-    }
-}
 
 
 function updateMaterial() {
@@ -345,7 +217,6 @@ function controlGui() {
     const cubeFolder = gui.addFolder('Cube')
     const cubePositionFolder = cubeFolder.addFolder('Position')
     cubePositionFolder.add(myObject3D.position, 'x', -5, 5)
-    cubePositionFolder.add(myObject3D.position, 'y', -5, 5)
     cubePositionFolder.add(myObject3D.position, 'z', -5, 5)
     cubePositionFolder.open()
     const cubeRotationFolder = cubeFolder.addFolder('Rotation')
@@ -382,10 +253,8 @@ function controlGui() {
         .onChange(() => updateMaterial())
     materialFolder.open()
 
-    const axisControl = gui.addFolder('Ejes')
-    axisControl.add(object3DAxis,'visible')
-    axisControl.open()
     
+
     const viewType = gui.addFolder('Vista')
     viewType.add(view,'tipo',
                     ['Opera', '3D', 'XR'])
@@ -437,11 +306,6 @@ const render = function () {
     } else {
      effect.render(scene, camera)
     }
-    // necesario para que se vean las etiquetas de anotaciones
-    labelRenderer.render( scene, camera );
 }
-
-
-
 
 animate()
